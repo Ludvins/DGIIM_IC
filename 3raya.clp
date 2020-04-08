@@ -13,7 +13,6 @@
 
 ; (Juega X|O ?origen_i ?origen_j ?destino_i ?destino_j) representa que la jugada consiste en desplazar la ficha de la posicion
 ;   (?origen_i,?origen_j) a la posición (?destino_i,?destino_j)
-;   las fichas que se ponen inicialmente se supondrá que están en el posición (0,0)
 
 
 ; INICIALIZAR ESTADO
@@ -24,7 +23,12 @@
 ; | 2 |   |   |   |
 ; | 3 |   |   |   |
 
-; Inicializa las relaciones de las posiciones del tablero
+; Inicializa las relaciones de las posiciones del tablero.
+; Conectado i1 j1 f i2 j2 indica que las posiciones (i1,j1) y (i2,j2) están conectadas de la forma que indica 'f', donde:
+; h: Horizontal
+; v: Vertical
+; d1: Diagonal Principal
+; d2: Diagonal Secundaria
 (deffacts Tablero
   (Conectado 1 a h 1 b)
   (Conectado 1 b h 1 c)
@@ -67,8 +71,7 @@
   (assert (Conectado ?i1 ?j1 ?forma ?i ?j))
 )
 
-; Comprueba si i1 j1 e i2 j2 están alineados
-;  puede que por i3 j3
+; Comprueba si (i1,j1) e (i2,j2) están alineados
 (defrule Estan_en_linea
   (declare (salience 1))
   (or
@@ -86,7 +89,11 @@
   (assert (En_linea ?forma ?i1 ?j1 ?i2 ?j2))
 )
 
-; Comprueba si un jugador tiene 2 fichas en la misma linea
+; Comprueba si un jugador tiene 2 fichas en la misma linea,
+; No existe simetría en la regla.
+;
+; Utilizamos la macro 'logical' para marcar que si alguna de las fichas involucradas se mueve,
+; ya no estarían en linea.
 (defrule 2_fichas_en_linea
   (declare (salience 2))
   (logical
@@ -101,7 +108,10 @@
   (assert (2_en_linea ?f ?i1 ?j1 ?i2 ?j2 ?p))
 )
 
-; comprueba si puede ganar poniendo ficha
+; Comprueba si alguno de los dos jugadores puede ganar poniendo una ficha.
+; Para ello comprueba si tiene 2 fichas alineadas y la tercera posición está vacia.
+;
+; En caso de dejar de estar alineadas o que la tercerá posición deje de estar vacia, borramos le hecho.
 (defrule Puede_ganar_poniendo_ficha
   (declare (salience 1))
   (logical
@@ -115,7 +125,12 @@
   (assert (Puede_ganar_poniendo ?i3 ?j3 ?p))
 )
 
-; Comprueba si puede ganar moviendo
+; Comprueba si un jugador puede ganar la partida moviendo una ficha de la posición
+; (i4,j4) a la (i3,j3).
+;
+; Para ello comprueba que (i1,j1)-(i2,j2) son fichas alineadas.
+;
+; Utilizamos 'logical' al igual que en el caso anterior.
 (defrule Puede_ganar_moviendo_ficha
   (declare (salience 1))
   (logical
@@ -177,6 +192,10 @@
   (assert (muestra_posicion))
 )
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;; JUEGA HUMANO ;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defrule jugada_contrario_fichas_sin_colocar
   ?f <- (Turno O)
   (Fichas_sin_colocar O ?n)
@@ -208,23 +227,6 @@
   (assert (Turno X) (Posicion ?i ?j O) (reducir_fichas_sin_colocar O))
 )
 
-(defrule reducir_fichas_sin_colocar
-  (declare (salience 2))
-  ?f <- (reducir_fichas_sin_colocar ?jugador)
-  ?g <- (Fichas_sin_colocar ?jugador ?n)
- =>
-  (retract ?f ?g)
-  (assert (Fichas_sin_colocar ?jugador (- ?n 1)))
-)
-
-(defrule todas_las_fichas_en_tablero
-  (declare (salience 2))
-  ?f <- (Fichas_sin_colocar ?jugador 0)
- =>
-  (retract ?f)
-  (assert (Todas_fichas_en_tablero ?jugador))
-  (printout t "Todas las fichas en el tablero para el jugador " ?jugador)
-)
 
 (defrule juega_contrario
   ?f <- (Turno O)
@@ -288,10 +290,33 @@
   (assert (Turno X) (Posicion ?destino_i ?destino_j O) (Posicion ?origen_i ?origen_j " ") )
 )
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;; CONTROL DE FICHAS ;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defrule reducir_fichas_sin_colocar
+  (declare (salience 2))
+  ?f <- (reducir_fichas_sin_colocar ?jugador)
+  ?g <- (Fichas_sin_colocar ?jugador ?n)
+ =>
+  (retract ?f ?g)
+  (assert (Fichas_sin_colocar ?jugador (- ?n 1)))
+)
 
-;;;;;;;;;;; ACTUALIZAR  ESTADO TRAS JUGADA DE CLISP ;;;;;;;;;;;;;;;;;;
+(defrule todas_las_fichas_en_tablero
+  (declare (salience 2))
+  ?f <- (Fichas_sin_colocar ?jugador 0)
+ =>
+  (retract ?f)
+  (assert (Todas_fichas_en_tablero ?jugador))
+  (printout t "Todas las fichas en el tablero para el jugador " ?jugador)
+)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;; JUEGA CLISP ;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Actualiza las posiciones tras mover una pieza de 'origen' a 'destino'
 (defrule juega_clisp_actualiza_estado
   ?f <- (Juega X ?origen_i ?origen_j ?destino_i ?destino_j)
   ?h <- (Posicion ?origen_i ?origen_j X)
@@ -301,8 +326,7 @@
   (assert (Turno O) (Posicion ?destino_i ?destino_j X) (Posicion ?origen_i ?origen_j " ") )
 )
 
-
-;;;;;;;;;;; CLISP JUEGA SIN CRITERIO ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Juego sin criterio poniendo fichas
 (defrule clisp_juega_sin_criterio_fichas_sin_colocar
   (declare (salience -9999))
   ?f<- (Turno X)
@@ -314,6 +338,7 @@
   (assert (Posicion ?i ?j X) (Turno O) (reducir_fichas_sin_colocar X))
 )
 
+; Juego sin criterio moviendo ficha
 (defrule clisp_juega_sin_criterio
   (declare (salience -9999))
   ?f<- (Turno X)
@@ -327,6 +352,7 @@
   (retract ?f)
 )
 
+; Clisp evita que el contrario gane poniendo una ficha.
 (defrule evita_contrario_gane_fichas_poniendo
   (declare (salience -5))
   ?f <- (Turno X)
@@ -342,6 +368,7 @@
   (assert (Posicion ?i ?j X) (Turno O) (reducir_fichas_sin_colocar X))
 )
 
+; Clisp evita que el contrario gane moviendo ficha de (i1,j1) a (i,j)
 (defrule evita_contrario_gane_moviendo
   (declare (salience -5))
   ?f <- (Turno X)
@@ -359,6 +386,7 @@
   (assert (Posicion ?i ?j X) (Turno O) (Posicion ?i1 ?j1 " "))
 )
 
+; Clisp gana la partida poniendo una ficha
 (defrule gana_poniendo_ficha
   (declare (salience -5))
   ?f <- (Turno X)
@@ -371,6 +399,7 @@
   (assert (Posicion ?i ?j X) (Turno O) (reducir_fichas_sin_colocar X))
 )
 
+; Clisp gana la partida moviendo una ficha
 (defrule gana_moviendo_ficha
   (declare (salience -5))
   ?f <- (Turno X)
@@ -384,7 +413,9 @@
   (assert (Posicion ?i2 ?j2 X) (Posicion ?i1 ?j1 " ") (Turno O))
 )
 
-; Reglas para ganar siempre que empiezo yo
+;;;;;;;; CONJUNTO DE REGLAS PARA GANAR AL EMPEZAR ;;;;;;;;;
+
+; Si CLISP empieza, coge el centro del tablero
 (defrule empiezo_yo
   (declare (salience -10))
   (not (Posicion ? ? O))
@@ -396,6 +427,25 @@
   (assert (Posicion 2 b X) (Turno O) (reducir_fichas_sin_colocar X) (Ganar_siempre_turno_2))
 )
 
+; Si el rival pone en un lado (no esquina), respondemos de la siguiente forma
+;
+; |   | a | b | c |
+; | 1 |   |   |   |
+; | 2 |   | X | O |
+; | 3 | X |   |   |
+;
+; Para ello buscamos una posición que cumpla
+;  - No estar alineada con la ficha del rival.
+;  - Estar en diagonal con la ficha central.
+;
+; Con esto obligamos a el rival a poner en la posición alineada, llegando a la siguiente situacion
+; |   | a | b | c |
+; | 1 |   |   | O |
+; | 2 |   | X | O |
+; | 3 | X |   | X |
+;
+; Donde, en caso de poner O en (1,a), CLISP utilizará las reglas de mover para ganar, pero, en caso de poner O en (3,b), necesitaremos mover la pieza (3,a)->(1,a). Para ello utilizamos 'tercer_turno_1'.
+;
 (defrule segundo_turno_1
   (declare (salience -10))
   ?f <- (Turno X)
@@ -417,6 +467,54 @@
   (assert (Posicion ?i2 ?j2 X) (Turno O) (reducir_fichas_sin_colocar X) (Ganar_siempre_turno_3_a))
 )
 
+; En esta situación solo buscamos cual es la posición a la que queremos mover la ficha, en este caso
+; |   | a | b | c |
+; | 1 |   |   | O |
+; | 2 |   | X | O |
+; | 3 | X | O | X |
+;
+; Buscamos mover la única ficha que podemos y no es la central, a la única posición posible.
+;
+; Tras esto, CLIPS utilizará el "ganar_moviendo" para terminar la partida.
+(defrule tercer_turno_1
+  (declare (salience -10))
+  ?f <- (Turno X)
+  ?f1 <- (Ganar_siempre_turno_3_a)
+  ?f2 <- (Posicion ?i1 ?j1 " ")
+  ?f3 <- (Posicion ?i2 ?j2 X)
+  (Conectado ?i1 ?j1 ? ?i2 ?j2)
+  (test (neq ?i2 2))
+ =>
+  (retract ?f ?f1 ?f2 ?f3)
+  (printout t "[Ganar siempre 3]: Juego mover ficha en "?i1"-"?j1 crlf)
+  (assert (Posicion ?i1 ?j1 X) (Posicion ?i2 ?j2 " ") (Turno O))
+)
+
+
+; Si el rival hubiera colocado una ficha en una esquina tal que
+;
+; |   | a | b | c |
+; | 1 |   |   |   |
+; | 2 |   | X |   |
+; | 3 |   |   | O |
+;
+; Nosotros buscamos responder de la siguiente forma
+;
+; |   | a | b | c |
+; | 1 |   |   |   |
+; | 2 | X | X |   |
+; | 3 |   |   | O |
+;
+; Para ello buscamos una posición conectada de forma vertical u horizontal con el centro
+; y que no se encuentre alineada con la ficha del rival
+;
+;El juego transcurriría tal que asi
+; |   | a | b | c |
+; | 1 |   |   | X |
+; | 2 | X | X | O |
+; | 3 | O |   | O |
+;
+; Luego en 'tercer_turno_2' moveriamos (2,a)->(1,a) ganando la partida en el siguiente turno.
 (defrule segundo_turno_2
   (declare (salience -10))
   ?f <- (Turno X)
@@ -438,20 +536,12 @@
   (assert (Posicion ?i2 ?j2 X) (Turno O) (reducir_fichas_sin_colocar X) (Ganar_siempre_turno_3_b))
 )
 
-(defrule tercer_turno_1
-  (declare (salience -10))
-  ?f <- (Turno X)
-  ?f1 <- (Ganar_siempre_turno_3_a)
-  ?f2 <- (Posicion ?i1 ?j1 " ")
-  ?f3 <- (Posicion ?i2 ?j2 X)
-  (Conectado ?i1 ?j1 ? ?i2 ?j2)
-  (test (neq ?i2 2))
- =>
-  (retract ?f ?f1 ?f2 ?f3)
-  (printout t "[Ganar siempre 3]: Juego mover ficha en "?i1"-"?j1 crlf)
-  (assert (Posicion ?i1 ?j1 X) (Posicion ?i2 ?j2 " ") (Turno O))
-)
+; Dada la situación anterior, buscamos nuestra ficha que esta conectada a la central de forma horizontal o vertical y la movemos a la única posición posible.
 
+; |   | a | b | c |
+; | 1 | X |   | X |
+; | 2 |   | X | O |
+; | 3 | O |   | O |
 (defrule tercer_turno_2
   (declare (salience -10))
   ?f <- (Turno X)
