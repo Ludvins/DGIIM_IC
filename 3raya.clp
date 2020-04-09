@@ -377,7 +377,7 @@
    (Puede_ganar_poniendo ?i ?j O)
    (Puede_ganar_moviendo ? ? ?i ?j O)
    )
-  ?g2 <- (Posicion ?i1 ?i2 X)
+  ?g2 <- (Posicion ?i1 ?j1 X)
   ?g <- (Posicion ?i ?j " ")
   (Conectado ?i1 ?j1 ? ?i ?j)
  =>
