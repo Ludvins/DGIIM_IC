@@ -388,7 +388,7 @@
 
 ; Clisp gana la partida poniendo una ficha
 (defrule gana_poniendo_ficha
-  (declare (salience -5))
+  (declare (salience -4))
   ?f <- (Turno X)
   (Fichas_sin_colocar X ?n)
   (Puede_ganar_poniendo ?i ?j X)
@@ -401,7 +401,7 @@
 
 ; Clisp gana la partida moviendo una ficha
 (defrule gana_moviendo_ficha
-  (declare (salience -5))
+  (declare (salience -4))
   ?f <- (Turno X)
   (not (Fichas_sin_colocar X ?n))
   (Puede_ganar_moviendo ?i1 ?j1 ?i2 ?j2 X)
