@@ -1,4 +1,32 @@
 
+
+; Sistema experto encargado de asesorar en la elección de rama
+;
+; Autor: Luis Antonio Ortega Andrés
+;
+; Experto: Johanna Capote Robayna
+;
+; Se utilizaran los hechos (Motivo ?rama ?texto) para representar los motivos por los que escoger esa rama.
+; El hecho (p ?rama ?n) hará referencia a que la rama en cuestión ha obtenido n puntos, a mayor cantidad de puntos
+;  mayor probabilidad de ser recomendada.
+;
+; El Sistema Experto permite acceder a la recomendación sin necesidad de responder todas las preguntas, para ello:
+;  - Responder con una 'R' resultará en la finalización de todas las preguntas y la recomendación de una rama.
+;  - Responder cualquier otro caracter que no se encuentre indicado en la pregunta o sea R, será equivalente a no responder dicha pregunta (luego no se contabilizará).
+;
+; Como respuesta a cada pregunta se crearán los hechos (Respuesta ?tema ?x) y (Contabilizar ?tema)
+; el segundo de ellos se utlizará para activar la regla encargada de sumar los puntos a las ramas que lo requieran.
+; dependiendo de la respuesta dada.
+;
+; El hecho (No_seguir) indica que no se desea seguir realizando preguntas, ya porque no queden o porque el usuario lo haya decidido.
+;
+; Existen dos formas de recomentar una rama:
+;  - Se cumplan unas condiciones concretas que el experto considera son necesarias y suficientes, por ejemplo,
+;    se recomendará la rama de Ingenieria de Computadores si el usuario muestra interes por el Hardware, la Electronica y la Programación Paralela.
+;  - En caso de no cumplirse las condiciones de ninguna rama, se escogerá aquella o aquellas con una mayor puntuación.
+
+
+; Definición de ramas
 (deffacts Ramas
   (Rama Computacion_y_Sistemas_Inteligentes "Computacion y Sistemas Inteligentes")
   (Rama Ingenieria_del_Software "Ingenieria del Software")
@@ -7,6 +35,7 @@
   (Rama Tecnologias_de_la_Informacion "Tecnologias de la Informacion")
   )
 
+; Inicialización del sistema de puntos
 (deffacts Estado_Inicial
   (p Computacion_y_Sistemas_Inteligentes 0)
   (p Ingenieria_del_Software 0)
@@ -15,15 +44,16 @@
   (p Tecnologias_de_la_Informacion 0)
   )
 
-
-
+; Mensaje de bienvenida
 (defrule Texto_inicial
 (declare (salience 10))
 =>
 (printout t "Bienvenido al Sistema Experto encargado de asesorar en la elección de una rama. Tras cada pregunta aparecerá entre parentesis las posibles respuestas, cualquier otra respuesta se considerará como NS/NC. Además se puede responde 'R' para obtener una recomendación con las respuestas actuales sin realizar todas las preguntas." crlf)
-(printout t "El nombre el experto que se ha consultado es: Johanna Capote Robayna" crlf)
 )
 
+; Regla auxiliar utilizada para sumar puntos a las distintas ramas
+; Definir el hecho (Suma ?pcsi ?pic ?pis ?psi ?pti)
+; resultará en aumentar la puntuación de cada rama en el valor indicado.
 (defrule Sumar
   (declare (salience 10))
   ?sumar <- (Suma ?pcsi ?pic ?pis ?psi ?pti)
@@ -43,10 +73,11 @@
 )
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;; HARDWARE ;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;; PREGUNTAS  ;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+; HARDWARE
 (defrule Pregunta_hw
   (not (No_seguir))
  =>
@@ -54,6 +85,7 @@
   (assert (Respuesta hardware (read)) (Contabilizar_hw))
 )
 
+; Respuesta afirmativa
 (defrule Respuesta_hw_s
   (declare (salience 1))
   (Respuesta hardware S)
@@ -66,6 +98,8 @@
     (Motivo Ingenieria_de_Computadores "es la mejor opción si te gusta el Hardware, ")
     )
 )
+
+; Respuesta negativa
 (defrule Respuesta_hw_n
   (declare (salience 1))
   (Respuesta hardware N)
@@ -82,10 +116,7 @@
     )
 )
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;; ELECTRONICA ;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+; ELECTRONICA
 (defrule Pregunta_electronica
   (not (No_seguir))
  =>
@@ -93,6 +124,7 @@
   (assert (Respuesta electronica (read)) (Contabilizar_elec))
 )
 
+; Respuesta afirmativa
 (defrule Respuesta_electronica_s
   (declare (salience 1))
   (Respuesta electronica S)
@@ -105,6 +137,8 @@
     (Motivo Ingenieria_de_Computadores "esta es la única rama donde se trata electrónica, ")
     )
 )
+
+; Respuesta negativa
 (defrule Respuesta_electronica_n
   (declare (salience 1))
   (Respuesta electornica N)
@@ -117,10 +151,8 @@
     )
 )
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;; PROGRAMACION PARALELA ;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+; PROGRAMACION PARALELA
 (defrule Pregunta_paralela
   (not (No_seguir))
  =>
@@ -128,6 +160,7 @@
   (assert (Respuesta paralela (read)) (Contabilizar_para))
 )
 
+; Respuesta afirmativa
 (defrule Respuesta_para_s
   (declare (salience 1))
   (Respuesta paralela S)
@@ -143,6 +176,7 @@
     )
 )
 
+; Respuesta negativa
 (defrule Respuesta_para_n
   (declare (salience 1))
   (Respuesta paralela N)
@@ -156,10 +190,7 @@
 )
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;; NOTA ;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+; NOTA MEDIA
 (defrule Pregunta_nota
   (not (No_seguir))
  =>
@@ -167,6 +198,7 @@
   (assert (Respuesta nota (read)) (Contabilizar_media))
 )
 
+; Nota baja
 (defrule Respuesta_nota_1
   (declare (salience 1))
   ?f <- (Contabilizar_media)
@@ -184,6 +216,7 @@
     )
 )
 
+; Nota media
 (defrule Respuesta_nota_2
   (declare (salience 1))
   ?f <- (Contabilizar_media)
@@ -203,6 +236,7 @@
     )
 )
 
+; Nota alta
 (defrule Respuesta_nota_3
   (declare (salience 1))
   ?f <- (Contabilizar_media)
@@ -219,11 +253,8 @@
     )
 )
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;; TRABAJAR ;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
+; TRABAJAR
 (defrule Pregunta_trabajar
   (not (No_seguir))
  =>
@@ -231,6 +262,7 @@
   (assert (Respuesta trabajar (read)) (Contabilizar_trabajar))
 )
 
+; Docencia
 (defrule Respuesta_trabajo_1
   (declare (salience 1))
   ?f <- (Contabilizar_trabajar)
@@ -244,6 +276,7 @@
     )
 )
 
+; Empresa publica
 (defrule Respuesta_trabajo_2
   (declare (salience 1))
   ?f <- (Contabilizar_trabajar)
@@ -258,6 +291,7 @@
     )
 )
 
+; Empresa privada
 (defrule Respuesta_trabajo_3
   (declare (salience 1))
   ?f <- (Contabilizar_trabajar)
@@ -272,11 +306,8 @@
     )
 )
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;; PROGRAMAR ;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
+; PROGRAMACIÓN
 (defrule Pregunta_programar
   (not (No_seguir))
 =>
@@ -284,6 +315,7 @@
   (assert (Respuesta programar (read)) (Contabilizar_programar))
 )
 
+; Respuesta afirmativa
 (defrule Respuesta_programar_s
   (declare (salience 1))
   ?f <- (Contabilizar_programar)
@@ -299,6 +331,7 @@
     )
 )
 
+; Respuesta Negativa
 (defrule Respuesta_programar_n
   (declare (salience 1))
   ?f <- (Contabilizar_programar)
@@ -312,16 +345,16 @@
     )
 )
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;; MATEMATICAS ;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+; MATEMÁTICAS
 (defrule Pregunta_matematicas
   (not (No_seguir))
  =>
   (printout t "¿Te gustan las matemáticas? (S/N) ")
   (assert (Respuesta matematicas (read)) (Contabilizar_matematicas))
 )
+
+; Respuesta afirmativa
 (defrule Respuesta_matematicas_s
   (declare (salience 1))
   ?f <- (Contabilizar_matematicas)
@@ -335,6 +368,7 @@
     )
 )
 
+; Respuesta negativa
 (defrule Respuesta_matematicas_n
   (declare (salience 1))
   ?f <- (Contabilizar_matematicas)
@@ -347,16 +381,16 @@
     )
 )
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;; PROGRAMACION WEB ;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+; PROGRAMACIÓN WEB
 (defrule Pregunta_web
   (not (No_seguir))
  =>
   (printout t "¿Te gustan la programación web? (S/N) ")
   (assert (Respuesta web (read)) (Contabilizar_web))
 )
+
+; Respuesta afirmativa
 (defrule Respuesta_web_s
   (declare (salience 1))
   ?f <- (Contabilizar_web)
@@ -370,6 +404,7 @@
     )
 )
 
+; Respuesta negativa
 (defrule Respuesta_web_n
   (declare (salience 1))
   ?f <- (Contabilizar_web)
@@ -383,16 +418,15 @@
 )
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;; Bases de datos  ;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+; BASES DE DATOS
 (defrule Pregunta_bases
   (not (No_seguir))
  =>
   (printout t "¿Te gustan el diseño y gestión de bases de datos? (S/N) ")
   (assert (Respuesta bases (read)) (Contabilizar_bases))
 )
+
+; Respuesta afirmativa
 (defrule Respuesta_bases_s
   (declare (salience 1))
   ?f <- (Contabilizar_bases)
@@ -406,6 +440,7 @@
     )
 )
 
+; Respuesta negativa
 (defrule Respuesta_bases_n
   (declare (salience 1))
   ?f <- (Contabilizar_bases)
@@ -422,6 +457,7 @@
 ;;;;;;;;;;;;;;;;;; RESPUESTA PARCIAL ;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+; Cuando no queden preguntas, simulamos que ha terminado añadiendo artificlamente una respuesta R
 (defrule End =>
 (assert (Respuesta a R))
 )
@@ -439,6 +475,7 @@
   (printout t "No has respondido a ninguna pregunta, luego no puedo aconsejarte." crlf)
 )
 
+; Calcular la rama o ramas con mayor puntuacion.
 (defrule No_seguir
   (declare (salience 100))
   (Respuesta ? R)
@@ -525,6 +562,7 @@
   (assert (Consejo Ingenieria_del_Software) (No_seguir))
 )
 
+; Regla hecha para unir los motivos para recomendar una rama en una única cadena.
 (defrule Unir_Motivos
   (declare (salience 15))
   (Consejo ?a)
@@ -536,13 +574,15 @@
   (assert (Motivo ?a (str-cat ?b1 ?b2)))
 )
 
+; Regla que muestra una rama a aconsejar junto con sus motivos
 (defrule Motivos
   (Consejo ?a)
   ?f1 <- (Motivo ?a ?b2)
- (Rama ?a ?t)
+  (Raima ?a ?t)
  =>
   (retract ?f1)
   (printout t crlf "Te aconsejo "?t crlf)
   (printout t "Ya que, " ?b2 "por ello pienso que esta rama se ajusta a tu perfil." crlf)
+  (printout t "Nombre del experto: Johanna Capote Robayna." crlf)
 
 )
