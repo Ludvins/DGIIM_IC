@@ -4,7 +4,7 @@
 ;
 ; Autor: Luis Antonio Ortega Andrés
 ;
-; Experto: Johanna Capote Robayna
+; Experta: Johanna Capote Robayna
 ;
 ; Se utilizaran los hechos (Motivo ?rama ?texto) para representar los motivos por los que escoger esa rama.
 ; El hecho (p ?rama ?n) hará referencia a que la rama en cuestión ha obtenido n puntos, a mayor cantidad de puntos
@@ -578,11 +578,11 @@
 (defrule Motivos
   (Consejo ?a)
   ?f1 <- (Motivo ?a ?b2)
-  (Raima ?a ?t)
+  (Rama ?a ?t)
  =>
   (retract ?f1)
   (printout t crlf "Te aconsejo "?t crlf)
   (printout t "Ya que, " ?b2 "por ello pienso que esta rama se ajusta a tu perfil." crlf)
-  (printout t "Nombre del experto: Johanna Capote Robayna." crlf)
+  (printout t "Nombre de la experta: Johanna Capote Robayna." crlf)
 
 )
