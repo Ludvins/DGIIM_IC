@@ -6,11 +6,12 @@ facetas cree que caracterizan a cada rama, de forma que sean necesarias y
 suficientes para recomendarla. Estas facetas se han transformado mas tarde en
 las preguntas a realizar por el sistema experto.
 
-Como las configuraciones de características dadas anteriormente no forman una
-partición del espacio de respuestas, ha sido necesario utilizar otra técnica
-para asignar una rama a una configuración de respuestas que no se encuentre
-entre las dadas por el experto. Para ello, se ha pedido al experto que asigne un
-valor numérico (preferiblemente bajo 1-3) referente al nivel de afinidad con cada rama en cada una de las
-respuestas a las preguntas. Son estos resultados, se han construido un sistema
-de puntuación de forma que, si no se cumplen los requisitos explícitos de
-ninguna rama, se recomendará aquella con una mayor afinidad (puntuación).
+Como el usuario podría dar una configuración de respuestas no contemplada en las
+anteriores, ha sido necesario utilizar otra técnica para asignar una rama a una
+configuración de respuestas que no se encuentre entre las dadas por el experto.
+
+Para ello, se ha pedido al experto que asigne un valor numérico (entre 1 y 3)
+referente al nivel de afinidad con cada rama en cada una de las respuestas a
+las preguntas. Son estos resultados, se han construido un sistema de puntuación
+de forma que, si no se cumplen los requisitos explícitos de ninguna rama, se
+recomendará aquella con una mayor afinidad (puntuación).

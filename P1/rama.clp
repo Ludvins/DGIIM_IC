@@ -94,7 +94,7 @@
   (retract ?f)
   (assert
     ;(Suma ?csi ?ic ?is ?si ?ti)
-    (Suma 1 3 0 0 0)
+    (Suma 0 3 0 0 0)
     (Motivo Ingenieria_de_Computadores "es la mejor opción si te gusta el Hardware, ")
     )
 )
