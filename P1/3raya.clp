@@ -14,6 +14,11 @@
 ; (Juega X|O ?origen_i ?origen_j ?destino_i ?destino_j) representa que la jugada consiste en desplazar la ficha de la posicion
 ;   (?origen_i,?origen_j) a la posición (?destino_i,?destino_j)
 
+; El programa en CLIPS sigue la siguiente estategia:
+;  - Si puede ganar lo hace.
+;  - Si puede evitar que el contrario gane lo hace.
+;  - Si empieza el la partida, entonces la gana incondicionalmente ya que tiene el conocimiento para hacerlo.
+
 
 ; INICIALIZAR ESTADO
 
@@ -104,7 +109,7 @@
   (not (2_en_linea ?f ?i2 ?j2 ?i1 ?j1 ?p))
   (test (neq ?p " "))
  =>
-  (printout t "[DEBUG]: 2 fichas en linea de "?p ", son " ?i1 ?j1 " y " ?i2 ?j2 crlf)
+  ; (printout t "[DEBUG]: 2 fichas en linea de "?p ", son " ?i1 ?j1 " y " ?i2 ?j2 crlf)
   (assert (2_en_linea ?f ?i1 ?j1 ?i2 ?j2 ?p))
 )
 
@@ -121,7 +126,7 @@
    )
   (En_linea ?f ?i1 ?j1 ?i3 ?j3)
  =>
-  (printout t "[DEBUG]: Puede ganar el jugador " ?p " poniendo ficha en " ?i3"-"?j3 crlf)
+  ; (printout t "[DEBUG]: Puede ganar el jugador " ?p " poniendo ficha en " ?i3"-"?j3 crlf)
   (assert (Puede_ganar_poniendo ?i3 ?j3 ?p))
 )
 
@@ -145,7 +150,7 @@
   (not (En_linea ?f ?i4 ?j4 ?i1 ?j1))
   (not (En_linea ?f ?i4 ?j4 ?i2 ?j2))
  =>
-  (printout t "[DEBUG]: Puede ganar el jugador " ?p " moviendo " ?i4"-"?j4 " a " ?i3"-"?j3 crlf)
+  ; (printout t "[DEBUG]: Puede ganar el jugador " ?p " moviendo " ?i4"-"?j4 " a " ?i3"-"?j3 crlf)
   (assert (Puede_ganar_moviendo ?i4 ?j4 ?i3 ?j3 ?p))
 )
 

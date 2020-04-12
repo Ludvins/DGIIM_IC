@@ -6,7 +6,12 @@
 ;
 ; Experta: Johanna Capote Robayna
 ;
+; Existen dos formas de recomentar una rama:
+;  - Se cumplan unas condiciones concretas que el experto considera son necesarias y suficientes, por ejemplo,
+;    se recomendará la rama de Ingenieria de Computadores si el usuario muestra interes por el Hardware, la Electronica y la Programación Paralela.
+;  - En caso de no cumplirse las condiciones de ninguna rama, se escogerá aquella o aquellas con una mayor puntuación.
 ; Se utilizaran los hechos (Motivo ?rama ?texto) para representar los motivos por los que escoger esa rama.
+;
 ; El hecho (p ?rama ?n) hará referencia a que la rama en cuestión ha obtenido n puntos, a mayor cantidad de puntos
 ;  mayor probabilidad de ser recomendada.
 ;
@@ -14,16 +19,25 @@
 ;  - Responder con una 'R' resultará en la finalización de todas las preguntas y la recomendación de una rama.
 ;  - Responder cualquier otro caracter que no se encuentre indicado en la pregunta o sea R, será equivalente a no responder dicha pregunta (luego no se contabilizará).
 ;
+; Las preguntas que realiza el Sistema Experto junto con las posibles respuestas son:
+; - Interés por el hardware -> Si / No
+; - Interés por la electrónica -> Si / No
+; - Interés por la programación paralela -> Si / No
+; - La nota media del usuario -> Valor númerico (Se comprobará que es numérico utilizando "numberp")
+;   Esta variable se transformará a los hechos (Nota_media Baja), (Nota_media Media) y (Nota_Media Alta),
+;   dependiendo de si se encuentra en (5-6.6), (6.6-8.3) o (8.3-10).
+; - Preferencia por trabajar en docencia, empresa pública o privada -> D/Pu/Pr
+; - Interés por la programación -> Si/No
+; - Interés por las matemáticas -> Si/No
+; - Interés por la programación web -> Si/No
+; - Interés por la gestión de bases de datos -> Si/No
+;
 ; Como respuesta a cada pregunta se crearán los hechos (Respuesta ?tema ?x) y (Contabilizar ?tema)
 ; el segundo de ellos se utlizará para activar la regla encargada de sumar los puntos a las ramas que lo requieran.
 ; dependiendo de la respuesta dada.
 ;
 ; El hecho (No_seguir) indica que no se desea seguir realizando preguntas, ya porque no queden o porque el usuario lo haya decidido.
-;
-; Existen dos formas de recomentar una rama:
-;  - Se cumplan unas condiciones concretas que el experto considera son necesarias y suficientes, por ejemplo,
-;    se recomendará la rama de Ingenieria de Computadores si el usuario muestra interes por el Hardware, la Electronica y la Programación Paralela.
-;  - En caso de no cumplirse las condiciones de ninguna rama, se escogerá aquella o aquellas con una mayor puntuación.
+
 
 
 ; Definición de ramas
@@ -48,7 +62,7 @@
 (defrule Texto_inicial
 (declare (salience 10))
 =>
-(printout t "Bienvenido al Sistema Experto encargado de asesorar en la elección de una rama. Tras cada pregunta aparecerá entre parentesis las posibles respuestas, cualquier otra respuesta se considerará como NS/NC. Además se puede responde 'R' para obtener una recomendación con las respuestas actuales sin realizar todas las preguntas." crlf)
+(printout t "Bienvenido al Sistema Experto encargado de asesorar en la elección de una rama. Tras cada pregunta aparecera entre parentesis las posibles respuestas, cualquier otra respuesta se considerara como NS/NC. Además se puede responde 'R' para obtener una recomendacion con las respuestas actuales sin realizar todas las preguntas." crlf)
 )
 
 ; Regla auxiliar utilizada para sumar puntos a las distintas ramas
@@ -81,7 +95,7 @@
 (defrule Pregunta_hw
   (not (No_seguir))
  =>
-  (printout t "¿Te gusta el Hardware? (S/N) ")
+  (printout t "Te gusta el Hardware? (S/N) ")
   (assert (Respuesta hardware (read)) (Contabilizar_hw))
 )
 
@@ -120,7 +134,7 @@
 (defrule Pregunta_electronica
   (not (No_seguir))
  =>
-  (printout t "¿Te gusta la Electrónica? (S/N) ")
+  (printout t "Te gusta la Electronica? (S/N) ")
   (assert (Respuesta electronica (read)) (Contabilizar_elec))
 )
 
@@ -134,7 +148,7 @@
   (assert
     ; (Suma ?csi ?ic ?is ?si ?ti)
     (Suma 0 3 0 0 0)
-    (Motivo Ingenieria_de_Computadores "esta es la única rama donde se trata electrónica, ")
+    (Motivo Ingenieria_de_Computadores "esta es la unica rama donde se trata electronica, ")
     )
 )
 
@@ -156,7 +170,7 @@
 (defrule Pregunta_paralela
   (not (No_seguir))
  =>
-  (printout t "¿Te gusta la Programación Paralela? (S/N) ")
+  (printout t "Te gusta la Programacion Paralela? (S/N) ")
   (assert (Respuesta paralela (read)) (Contabilizar_para))
 )
 
@@ -170,9 +184,9 @@
   (assert
     ; (Suma ?csi ?ic ?is ?si ?ti)
     (Suma 1 1 1 0 0)
-    (Motivo Ingenieria_de_Computadores "esta es una de las ramas donde se utiliza programación paralela, ")
-    (Motivo Computacion_y_sistemas_Inteligentes "esta es una de las ramas donde se utiliza programación paralela, ")
-    (Motivo Ingenieria_del_Software "esta es una de las ramas donde se utiliza programación paralela, ")
+    (Motivo Ingenieria_de_Computadores "esta es una de las ramas donde se utiliza programacion paralela, ")
+    (Motivo Computacion_y_sistemas_Inteligentes "esta es una de las ramas donde se utiliza programacion paralela, ")
+    (Motivo Ingenieria_del_Software "esta es una de las ramas donde se utiliza programacion paralela, ")
     )
 )
 
@@ -194,7 +208,7 @@
 (defrule Pregunta_nota
   (not (No_seguir))
  =>
-  (printout t "¿Cuál es tu nota media? (5-10) ")
+  (printout t "Cual es tu nota media? (5-10) ")
   (assert (Respuesta nota (read)) (Contabilizar_media))
 )
 
@@ -249,7 +263,7 @@
     ; (Suma ?csi ?ic ?is ?si ?ti)
     (Suma 1 0 0 0 0)
     (Nota_alta)
-    (Motivo Computacion_y_Sistemas_Inteligentes "es la rama más exigente, ")
+    (Motivo Computacion_y_Sistemas_Inteligentes "es la rama mas exigente, ")
     )
 )
 
@@ -258,7 +272,7 @@
 (defrule Pregunta_trabajar
   (not (No_seguir))
  =>
-  (printout t "¿Dónde te gustaría trabajar? (D)ocendia, Empresa (Pu)blica o (Pr)ivada ")
+  (printout t "Donde te gustaria trabajar? (D)ocendia, Empresa (Pu)blica o (Pr)ivada ")
   (assert (Respuesta trabajar (read)) (Contabilizar_trabajar))
 )
 
@@ -272,7 +286,7 @@
   (assert
     ; (Suma ?csi ?ic ?is ?si ?ti)
     (Suma 1 0 0 0 0)
-    (Motivo Computacion_y_Sistemas_Inteligentes "actualmente es la rama más enfocada a la investigación, ")
+    (Motivo Computacion_y_Sistemas_Inteligentes "actualmente es la rama mas enfocada a la investigacion, ")
     )
 )
 
@@ -286,8 +300,8 @@
   (assert
     ; (Suma ?csi ?ic ?is ?si ?ti)
     (Suma 0 1 1 0 0)
-    (Motivo Ingenieria_del_Software "es una de las ramas con más salida en empresa pública, ")
-    (Motivo Ingenieria_de_Computadores "es una de las ramas con más salida en empresa pública, ")
+    (Motivo Ingenieria_del_Software "es una de las ramas con mas salida en empresa publica, ")
+    (Motivo Ingenieria_de_Computadores "es una de las ramas con mas salida en empresa publica, ")
     )
 )
 
@@ -301,8 +315,8 @@
   (assert
     ; (Suma ?csi ?ic ?is ?si ?ti)
     (Suma 1 0 0 1 0)
-    (Motivo Sistemas_de_Informacion "es una de las ramas con más salida en la empresa privada, ")
-    (Motivo Computacion_y_Sistemas_Inteligentes "es una de las ramas con más salida en la empresa privada, ")
+    (Motivo Sistemas_de_Informacion "es una de las ramas con mas salida en la empresa privada, ")
+    (Motivo Computacion_y_Sistemas_Inteligentes "es una de las ramas con mas salida en la empresa privada, ")
     )
 )
 
@@ -311,7 +325,7 @@
 (defrule Pregunta_programar
   (not (No_seguir))
 =>
-  (printout t "¿Consideras que te gusta programar? (S/N) ")
+  (printout t "Consideras que te gusta programar? (S/N) ")
   (assert (Respuesta programar (read)) (Contabilizar_programar))
 )
 
@@ -326,8 +340,8 @@
     ; (Suma ?csi ?ic ?is ?si ?ti)
     (Suma 1 0 1 1 0)
     (Motivo Ingenieria_del_Software "es esta rama se aprende a diseñar programas, ")
-    (Motivo Computacion_y_Sistemas_Inteligentes "en esta rama se realiza mucha programación algorítmica, ")
-    (Motivo Sistemas_de_Informacion "es una de las ramas donde se realiza programación, ")
+    (Motivo Computacion_y_Sistemas_Inteligentes "en esta rama se realiza mucha programación algoritmica, ")
+    (Motivo Sistemas_de_Informacion "es una de las ramas donde se realiza programacion, ")
     )
 )
 
@@ -350,7 +364,7 @@
 (defrule Pregunta_matematicas
   (not (No_seguir))
  =>
-  (printout t "¿Te gustan las matemáticas? (S/N) ")
+  (printout t "Te gustan las matematicas? (S/N) ")
   (assert (Respuesta matematicas (read)) (Contabilizar_matematicas))
 )
 
@@ -364,7 +378,7 @@
   (assert
     ; (Suma ?csi ?ic ?is ?si ?ti)
     (Suma 1 0 0 0 0)
-    (Motivo Computacion_y_Sistemas_Inteligentes "en esta rama existe un transfondo matemático importante, ")
+    (Motivo Computacion_y_Sistemas_Inteligentes "en esta rama existe un transfondo matematico importante, ")
     )
 )
 
@@ -386,7 +400,7 @@
 (defrule Pregunta_web
   (not (No_seguir))
  =>
-  (printout t "¿Te gustan la programación web? (S/N) ")
+  (printout t "Te gustan la programacion web? (S/N) ")
   (assert (Respuesta web (read)) (Contabilizar_web))
 )
 
@@ -400,7 +414,7 @@
   (assert
     ; (Suma ?csi ?ic ?is ?si ?ti)
     (Suma 0 0 0 0 1)
-    (Motivo Tecnologias_de_la_Informacion "en esta rama hay varias asignaturas orientadas a la programación web, ")
+    (Motivo Tecnologias_de_la_Informacion "en esta rama hay varias asignaturas orientadas a la programacion web, ")
     )
 )
 
@@ -422,7 +436,7 @@
 (defrule Pregunta_bases
   (not (No_seguir))
  =>
-  (printout t "¿Te gustan el diseño y gestión de bases de datos? (S/N) ")
+  (printout t "Te gustan el diseño y gestion de bases de datos? (S/N) ")
   (assert (Respuesta bases (read)) (Contabilizar_bases))
 )
 

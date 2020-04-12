@@ -7,11 +7,13 @@ suficientes para recomendarla. Estas facetas se han transformado mas tarde en
 las preguntas a realizar por el sistema experto.
 
 Como el usuario podría dar una configuración de respuestas no contemplada en las
-anteriores, ha sido necesario utilizar otra técnica para asignar una rama a una
-configuración de respuestas que no se encuentre entre las dadas por el experto.
+anteriores, ha sido necesario utilizar otra técnica para asignar una rama en
+estas situaciones.
 
 Para ello, se ha pedido al experto que asigne un valor numérico (entre 1 y 3)
 referente al nivel de afinidad con cada rama en cada una de las respuestas a
-las preguntas. Son estos resultados, se han construido un sistema de puntuación
+las preguntas. Con estos resultados, se han construido un sistema de puntuación
 de forma que, si no se cumplen los requisitos explícitos de ninguna rama, se
-recomendará aquella con una mayor afinidad (puntuación).
+recomendará aquella con una mayor afinidad (puntuación). Además, se ha pedido al
+experto justificar dicha afinidad, utilizando esto en los motivos que muestra el
+sistema experto.
